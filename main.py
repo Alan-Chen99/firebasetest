@@ -1,6 +1,6 @@
 #TODO: change secret
 
-#secrets:
+#env vars:
 
 #FIREBASE_CONFIG
 #{

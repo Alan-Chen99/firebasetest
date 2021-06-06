@@ -104,7 +104,7 @@ def unmark_inuse(key):
 		del inuse[key]
 		curtime=time.time()
 		cache[key]=(curtime,cache[key][1])
-		cachequeue.append((curtime,key))
+		cachequeue.appendleft((curtime,key))
 		if len(cachequeue)>cacheclean_threshold:
 			todel=cachequeue.pop()#(prioority,key)
 			if todel[1] not in inuse:
