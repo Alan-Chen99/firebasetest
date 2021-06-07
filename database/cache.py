@@ -24,7 +24,7 @@ from .tree import getchildpathunsafe
 #DONE: handle modifies when loading
 
 
-cacheclean_threshold=10000#0
+cacheclean_threshold=1000
 
 
 
@@ -71,26 +71,29 @@ def init():
 
 #for debugging
 ###########################################
-'''
+
+import json
 async def printdebug():
 	tmp={}
 	for x,y in cache.items():
-		tmp[x+f' [cache {inuse.get(x,0)}]']=y[1]
+		tmp['/'+x+f' [cache {inuse.get(x,0)}]']=y[1]
 	for x,y in pending.items():
 		if callable(y):
-			tmp[x+f' [pending func {inuse.get(x,0)}]']=y(await basedb.baseget(x))
+			tmp['/'+x+f' [pending func {inuse.get(x,0)}]']=y(await basedb.baseget(x))
 		else:
-			tmp[x+f' [pending val {inuse.get(x,0)}]']=y
+			tmp['/'+x+f' [pending val {inuse.get(x,0)}]']=y
 	for x,y in writing.items():
 		if callable(y):
-			tmp[x+f' [writing func {inuse.get(x,0)}]']=y(await basedb.baseget(x))
+			tmp['/'+x+f' [writing func {inuse.get(x,0)}]']=y(await basedb.baseget(x))
 		else:
-			tmp[x+f' [writing val {inuse.get(x,0)}]']=y
+			tmp['/'+x+f' [writing val {inuse.get(x,0)}]']=y
 	for x in loading:
-		tmp[x+f' [loading {inuse.get(x,0)}]']=None
-	tmp['meta']=json.loads(await basedb.baseget(metavar))
+		tmp['/'+x+f' [loading {inuse.get(x,0)}]']=None
+	for x in tmp:
+		if type(tmp[x]) is set:
+			tmp[x]=list(tmp[x])
 	print(json.dumps(tmp,indent=4))
-'''
+
 ###########################################
 
 def mark_inuse(key):
@@ -99,8 +102,12 @@ def mark_inuse(key):
 def unmark_inuse(key):
 	assert((key in inuse) and (inuse[key]>0))
 	tmp=inuse[key]
+	pathsettodel=None
 	settodel=None
 	if tmp==1:
+		assert(key not in pending)
+		assert(key not in writing)
+		assert(key not in loading)
 		del inuse[key]
 		curtime=time.time()
 		cache[key]=(curtime,cache[key][1])
@@ -111,12 +118,14 @@ def unmark_inuse(key):
 				cacheobj=cache[todel[1]]
 				if cacheobj[0] is todel[0]:
 					if type(cacheobj[1]) is set:
+						pathsettodel=todel[1]
 						settodel=cacheobj[1]
 					del cache[todel[1]]
 					del nodeholder[todel[1]]
 		if settodel is not None:
+			assert(pathsettodel is not None)
 			for x in settodel:
-				unmark_inuse(getchildpathunsafe(key,x))
+				unmark_inuse(getchildpathunsafe(pathsettodel,x))
 	else:
 		inuse[key]=tmp-1
 
@@ -169,6 +178,7 @@ if a node is pending but not in cache, then its pending status is ignored for it
 if a node is in pending and cache, then all child of it is in pending and cache
 if a node is in cache but not in pending, then all child of it is in cache (and can be in pending)
 
+should be in nodeholder if in any other var, 
 '''
 
 def changesfromdict(curnode:node,nd):#from nested dict, returns a pair
@@ -211,23 +221,29 @@ def modifyval(curnode,newval):
 		else:
 			childmodify=curnode
 		
-		for x in childmodify.children():
+		for x in childmodify.subtree():
 			childpath=x.path
-			with usepath(childpath):
-				#TODO: is inuse handled correctly here?
-				#TODO: change this so that priority does not refresh
-				cache[childpath]=(None,None)
-				if childpath in pending:
-					unmark_inuse(childpath)
-					del pending[childpath]
-				if childpath in loading:
-					loading[childpath][1].set()
+			if childpath in nodeholder:
+				assert(nodeholder[childpath] is x)
+				with usepath(childpath):
+					#TODO: is inuse handled correctly here?
+					#TODO: change this so that priority does not refresh
+					if (childpath in cache) and type(cache[childpath][1]) is set:
+						for setchild in cache[childpath][1]:
+							unmark_inuse(getchildpathunsafe(childpath,setchild))
+					cache[childpath]=(None,None)
+					if childpath in pending:
+						del pending[childpath]
+						unmark_inuse(childpath)
+					if childpath in loading:
+						loading[childpath][1].set()
 	
 		for childnode,childval in changesfromdict(childmodify,newval):
 			childpath=childnode.path
 			mark_inuse(childpath)#needs to do this for all nodes other than childmodify since direct parent changed
 			nodeholder[childpath]=childnode
-
+			if childpath in cache:
+				assert(cache[childpath][1] is None)
 			cache[childpath]=(None,childval)
 			if childpath not in pending:
 				mark_inuse(childpath)
@@ -255,6 +271,9 @@ def modifyval(curnode,newval):
 			else:
 				cache[modifynode_path]=(None,{childmodify.key()})
 				pending[modifynode_path]={childmodify.key()}
+		
+		assert(curnode.path in pending)
+		assert(curnode.path in inuse)
 		return sync_accesser.createsync(curnode)
 
 
@@ -512,9 +531,11 @@ async def pushchanges():
 	#print(final)
 	await basedb.baseupdate(final)
 
-	for x in writing:
-		unmark_inuse(x)
+	tmp_todel=writing
 	writing={}
+	#await printdebug()
+	for x in tmp_todel:
+		unmark_inuse(x)
 
 
 

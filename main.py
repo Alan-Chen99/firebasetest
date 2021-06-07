@@ -25,55 +25,58 @@ import database
 timepoint('starting:')
 
 
+from database.cache import printdebug
+#import database.cache as cache
 
-
+import gc
 async def main():
 	timepoint('init database')
 	root=database.init()
 
 	timepoint('running test')
 	
+	tmproot=root
+	root=tmproot['tmp']
 	root<<None
+
+	#await printdebug()
 
 	root['abc']<<'test2'
 
+	#await asyncio.sleep(1)
+	#await printdebug()
 	test=root['cde']<<{'testbefore':'beforeval'}
-	print(test())
+	#await asyncio.sleep(1)
+	
+	#print(test())
+
+	#await printdebug()
+
 	root<<{'cde':{'test':'cdeval'},'abc':'abcval'}
+	#await asyncio.sleep(1)
+#gc.collect()
+	#print(cache.pending)
+	
+	#await printdebug()
+
+	
+	
 	print(test())
 	root['cde']['test2']['hello']<<'haha'
 	print(test())
 	print(test['test']())
 	print(test['test2']())
-	await asyncio.sleep(1)
-	#root.delete()
-	#await baseget('a')
-
-
-	#timepoint('starting test')
-
-	#asyncio.gather(*[coro("group 1.{}".format(i)) for i in range(1, 6)])
-
-	#timepoint('timing 100 get operations in a sequence:')
-	#tmp=asyncio.gather(*[baseget(f'{i}') for i in range(100)])
-	#await tmp
-	
-	#timepoint('end test')
 	#await asyncio.sleep(1)
-	#print(root)
-	#a=root['a']['b']['c']
-	#b=root['a']['x']['c']
-	#for x in a.ancestorswithself():
-	#	print(x.path)
-	#print(b.path)
-	#await cache.init()
+	#root.delete()
+
 	
+	await asyncio.sleep(1)
+	#await printdebug()
 	
-	#await basedb.baseupdate({'abc/':'teststr'})
-	#await asyncio.sleep(5)
-	#await basedb.baseupdate({'abc/def/':{'hello':1.2}})
-	#test=await basedb.baseget('abc/')
-	#print(test)
+	await asyncio.sleep(1)
+
+	test=None
+	await printdebug()
 
 
 loop=asyncio.get_event_loop()

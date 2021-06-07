@@ -36,9 +36,6 @@ async def baseget(path):
 #async def basehave(path):
 #	return await baseget(path) is not None
 
-
-
-
 def baseupdatesync(dictobj):
 	if '' in dictobj:
 		assert(len(dictobj)==1)
