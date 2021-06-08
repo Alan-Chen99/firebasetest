@@ -45,7 +45,8 @@ async def main():
 
 	#await asyncio.sleep(1)
 	#await printdebug()
-	test=root['cde']<<{'testbefore':'beforeval'}
+	#test=
+	root['cde']<<{'testbefore':'beforeval'}
 	#await asyncio.sleep(1)
 	
 	#print(test())
@@ -59,15 +60,14 @@ async def main():
 	
 	#await printdebug()
 
+	print(await root['cde']())
 	
-	
-	print(test())
-	root['cde']['test2']['hello']<<'haha'
-	print(test())
-	print(test['test']())
-	print(test['test2']())
+	#print(test())
+	#root['cde']['test2']['hello']<<'haha'
+	#print(test())
+	#print(test['test']())
+	#print(test['test2']())
 	#await asyncio.sleep(1)
-	#root.delete()
 
 	
 	await asyncio.sleep(1)
