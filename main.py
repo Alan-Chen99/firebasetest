@@ -20,48 +20,28 @@ import asyncio
 
 timepoint('importing database:')
 
-import database
+import firebase
 
 timepoint('starting:')
 
 
-from database.cache import printdebug
+from firebase.cache import printdebug
 #import database.cache as cache
 
 import gc
 async def main():
 	timepoint('init database')
-	root=database.init()
-
+	root=firebase.init()['hello']
 	timepoint('running test')
 	
-	tmproot=root
-	root=tmproot['tmp']
-	root<<None
-
-	#await printdebug()
-
-	root['abc']<<'test2'
-
-	#await asyncio.sleep(1)
-	#await printdebug()
-	#test=
-	root['cde']<<{'testbefore':'beforeval'}
-	#await asyncio.sleep(1)
+	tmp=await root
+	await asyncio.sleep(1)
 	
-	#print(test())
-
+	#tmproot=root
+	root['hello']<<{'test':'testval'}
 	#await printdebug()
+	print(await root())
 
-	root<<{'cde':{'test':'cdeval'},'abc':'abcval'}
-	#await asyncio.sleep(1)
-#gc.collect()
-	#print(cache.pending)
-	
-	#await printdebug()
-
-	print(await root['cde']())
-	
 	#print(test())
 	#root['cde']['test2']['hello']<<'haha'
 	#print(test())
@@ -70,12 +50,11 @@ async def main():
 	#await asyncio.sleep(1)
 
 	
-	await asyncio.sleep(1)
 	#await printdebug()
 	
 	await asyncio.sleep(1)
 
-	test=None
+	#test=None
 	await printdebug()
 
 
