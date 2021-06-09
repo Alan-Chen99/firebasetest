@@ -528,7 +528,6 @@ async def pushchanges():
 
 	known={}
 	final={}
-	await printdebug()
 	for x in writing:
 		getfromwriting(x,known,final)
 	#print('updating, final is:')
