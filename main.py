@@ -31,16 +31,15 @@ from firebase.cache import printdebug
 import gc
 async def main():
 	timepoint('init database')
-	root=firebase.init()['hello']
+	root=firebase.init()
 	timepoint('running test')
 	
-	tmp=await root
+	root<<{'db':{'testvar':'hello'}}
 	await asyncio.sleep(1)
 	
-	#tmproot=root
-	root['hello']<<{'test':'testval'}
-	#await printdebug()
-	print(await root())
+	root['db']['testvar2']<<'hello2'
+	await printdebug()
+	#print(await root())
 
 	#print(test())
 	#root['cde']['test2']['hello']<<'haha'

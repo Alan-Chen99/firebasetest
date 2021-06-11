@@ -15,7 +15,7 @@ def init():
 	))
 	firebase_admin.initialize_app(cred)#uses FIREBASE_CONFIG in env automatically
 
-	root =db.reference('serverdb')
+	root =db.reference('serverdbtest')
 
 	read_executor=ThreadPoolExecutor(max_workers=5)#do i need to call .shutdown?
 	write_executor=ThreadPoolExecutor(max_workers=1)
